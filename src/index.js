@@ -6,6 +6,8 @@ const path = require('path');
 // setup static
 app.use(express.static(path.join(__dirname, '../public')));
 // app.use(express.static(path.join(__dirname, '../public/assets')));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use('/', routes);
 
 app.listen(9000, () => {
