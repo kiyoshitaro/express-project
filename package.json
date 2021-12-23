@@ -13,10 +13,13 @@
     "author": "Hung Nguyen",
     "license": "ISC",
     "dependencies": {
+        "@polkadot/api": "^6.12.1",
+        "bip39": "^3.0.4",
         "express": "^4.17.1",
         "express-session": "^1.17.2",
         "mysql": "^2.18.1",
         "nodemon": "^2.0.15",
+        "substrate": "^7.0.0",
         "typescript": "^4.5.3",
         "winston": "^3.3.3"
     }
