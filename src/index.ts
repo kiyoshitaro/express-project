@@ -1,6 +1,8 @@
-const express = require('express');
-const app = express()
-const routes = require('./routes/index');
+// const express = require('express');
+import express from "express";
+import routes from "./routes/index";
+const app = express();
+// const routes = require('./routes/index');
 const path = require('path');
 // setup static
 app.use(express.static(path.join(__dirname, '../public')));
