@@ -15,3 +15,6 @@ export const WESTEND_NETWORK: INetwork = {
     transactionUrl: 'https://westend.subscan.io/extrinsic',
     unit: 'WND',
 };
+export const MARKET_API = {
+    marketDataApiUrl: 'https://api.coingecko.com/api/v3/coins',
+};  

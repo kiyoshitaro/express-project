@@ -1,7 +1,6 @@
 // const express = require('express');
 import express from "express";
 const router = express.Router();
-import path from "path";
 import session from "express-session";
 import Home from '../controllers/Home';
 import About from '../controllers/About';
@@ -67,7 +66,7 @@ router.put('/api/v1/post/:id', Posts.Put);
 router.delete('/api/v1/post/:id', Posts.Delete);
 
 router.get('/api/v1/account/:id', Account.GetOne);
-router.get('/api/v1/account', Account.Post);
+router.post('/api/v1/account', Account.Post);
 
 router.all('*', NotFound.index);
 
