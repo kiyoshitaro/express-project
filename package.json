@@ -2,21 +2,32 @@
     "name": "express-project",
     "version": "1.0.0",
     "description": "For blockchain",
-    "main": "./src/index.js",
+    "main": "./src/index.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kiyoshitaro/express-project.git"
+    },
     "scripts": {
+        "clean": "rm -rf dist/*",
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "tsc && node dist/index.js",
         "build": "tsc"
     },
     "keywords": [
-        "blockchain"
+        "Polkadot",
+        "blockchain",
+        "expressjs"
     ],
-    "author": "Hung Nguyen",
+    "author": "Hung Nguyen <hunglhp1998@gmail.com>",
+    "maintainers": [
+        "Hung Nguyen <hunglhp1998@gmail.com>"
+    ],
     "license": "ISC",
     "dependencies": {
         "@polkadot/api": "^6.12.1",
         "axios": "^0.24.0",
         "bip39": "^3.0.4",
+        "bn.js": "^5.2.0",
         "express": "^4.17.1",
         "express-session": "^1.17.2",
         "mysql": "^2.18.1",
