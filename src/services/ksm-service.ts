@@ -35,7 +35,7 @@ export const createNewAccount = () => {
     try {
         const keyring = new Keyring();
         keyring.setSS58Format(42);
-        const pairAlice = keyring.addFromUri(seedWords);
+        const pairAlice = keyring.addFromUri(`${seedWords}//kusama`);
         const { address } = keyring.getPair(pairAlice.address);
         return { address, seedWords };
     } catch (err) {
@@ -47,7 +47,7 @@ export const createNewAccount = () => {
 // }
 export const getBalance = async (address: string) => {
     formatBalance.setDefaults({ unit: 'KSM' });
-    const marketPrice = await getUSDValue('kusama');
+    const marketInfo = await getUSDValue('kusama');
     const {
         data: { free: balance },
     } = await api.query.system.account(address);
@@ -56,7 +56,7 @@ export const getBalance = async (address: string) => {
         address,
         balance: balance.toString(),
         amount: dotBalance.replace(' KSM', ''),
-        marketPrice,
+        marketInfo,
     };
 }
 export const getApi = () => api;

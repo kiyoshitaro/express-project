@@ -8,6 +8,7 @@ const { stringToU8a, u8aToHex } = require('@polkadot/util');
 (async () => {
 
     const provider = new WsProvider('wss://kusama-rpc.polkadot.io/')
+    const provider = new WsProvider('wss://kusama-rpc.polkadot.io/')
     const api = await ApiPromise.create({ provider })
 
     // Note the .toNumber() here!
@@ -20,13 +21,16 @@ const { stringToU8a, u8aToHex } = require('@polkadot/util');
 
     // QUERY
     // // let addr = process.argv[2];
-    const addr = "GiBnzCGFofhmAvsUv9FUShUb8YJYYwWex3ThQNkbDDNprS6"
+    const addr = "F3opxRbN5ZZRfqouvHzYyCBggZECckghnZocZM44hhXhLJm"
     let ALICE = '15SbxvcrYSQzjpWk6SpiHUyRKEZMCFVzgA7QKspvFqU5jy82';
     const BOB = '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty';
 
-    // const balance = await api.query.balances.account("15SbxvcrYSQzjpWk6SpiHUyRKEZMCFVzgA7QKspvFqU5jy82");
-    // const { nonce, data: balance } = await api.query.system.account(addr);
-    // console.log(balance);
+    const balance1 = await api.query.balances.account("5Fvd9vKYtWzJS2vb5TcUNdSVej793VTnxbKWBN8X7u1vEQj3");
+    const { nonce, data: balance } = await api.query.system.account("5Fvd9vKYtWzJS2vb5TcUNdSVej793VTnxbKWBN8X7u1vEQj3");
+    console.log(balance1);
+    console.log("----------------");
+    console.log(balance);
+    // console.log(balance === balance1);
     // console.log(`${addr} has ${balance / DOT_DECIMAL_PLACES} KSM ( ${balance} raw )`);
 
 
