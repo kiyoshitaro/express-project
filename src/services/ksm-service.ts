@@ -2,7 +2,8 @@ export const DOT_DECIMAL_PLACES = 1000000000000;
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { INetwork } from '../interfaces/INetwork';
-import { mnemonicGenerate } from '@polkadot/util-crypto';
+import { mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
+
 import {
     Keyring
 } from '@polkadot/keyring';
@@ -20,7 +21,9 @@ export const connectToApi = async (network: INetwork) => {
     try {
         const provider = new WsProvider(networkFullUrl);
         api = await ApiPromise.create({ provider });
-        console.log(`Connected to ${name} network`);
+        if (api.isConnected) {
+            console.log(`Connected to ${name} network`);
+        }
         // api.on('disconnected', () => {
         //     disconnect();
         // });
@@ -30,14 +33,16 @@ export const connectToApi = async (network: INetwork) => {
         console.log(`Error in ${name} connection`);
     }
 };
-export const createNewAccount = () => {
-    const seedWords = mnemonicGenerate();
+export const createNewAccount = (seedWords?: string) => {
+    const mnemonic = seedWords && mnemonicValidate(seedWords)
+        ? seedWords
+        : mnemonicGenerate();
     try {
         const keyring = new Keyring();
         keyring.setSS58Format(42);
-        const pairAlice = keyring.addFromUri(`${seedWords}//kusama`);
+        const pairAlice = keyring.addFromMnemonic(`${mnemonic}`);
         const { address } = keyring.getPair(pairAlice.address);
-        return { address, seedWords };
+        return { address, mnemonic };
     } catch (err) {
         throw new Error('Error in create address');
     }

@@ -21,13 +21,10 @@ class Account {
     }
 
     public static Post(req: IRequest, res: IResponse): any {
-        // const { seedWords } = req.body;
+        const { seedWords } = req.body;
         try {
-            const { address, seedWords } = Wallet.createNewAccount();
-            // const account = seedWords === undefined
-            //     ? this.createNewAccount()
-            //     : this.createAccountWithSeed(seedWords);
-            res.status(201).json({ status: true, data: { address, seedWords } })
+            const { address, mnemonic } = Wallet.createNewAccount(seedWords);
+            res.status(201).json({ status: true, data: { address, seedWords: mnemonic } })
         }
         catch (err) {
             res.status(400).json({ status: false })
