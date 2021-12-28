@@ -15,6 +15,14 @@ export const WESTEND_NETWORK: INetwork = {
     transactionUrl: 'https://westend.subscan.io/extrinsic',
     unit: 'WND',
 };
+export const LOCAL_NETWORK: INetwork = {
+    name: 'Local',
+    networkURL: 'ws://127.0.0.1:9944',
+    networkPort: '',
+    networkFullUrl: 'ws://127.0.0.1:9944',
+    transactionUrl: 'https://westend.subscan.io/extrinsic',
+    unit: 'MUNIT',
+};
 export const MARKET_API = {
     marketDataApiUrl: 'https://api.coingecko.com/api/v3/coins',
 };  

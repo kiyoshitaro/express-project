@@ -13,8 +13,9 @@ var mnemonicGenerate = require('@polkadot/util-crypto');
 var mnemonic = mnemonicGenerate.mnemonicGenerate();
 console.log(mnemonic);
 
-// what is accurately described as the wallet seed
-// var seed = bip39.mnemonicToSeed(mnemonic) // you'll use this in #3 below
+// // what is accurately described as the wallet seed
+var seed = bip39.mnemonicToSeed(mnemonic) // you'll use this in #3 below
+console.log(mnemonic);
 (async () => {
     const provider = new WsProvider('wss://westend-rpc.polkadot.io')
     const api = await ApiPromise.create({ provider })

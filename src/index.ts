@@ -3,7 +3,7 @@ import express from "express";
 import routes from "./routes/index";
 import * as Wallet from "./services/ksm-service";
 
-import { KUSAMA_NETWORK, WESTEND_NETWORK } from "./constants/network"
+import { KUSAMA_NETWORK, WESTEND_NETWORK, LOCAL_NETWORK } from "./constants/network"
 // API.connectToApi(WESTEND_NETWORK);
 const app = express();
 const path = require('path');
@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 (async () => {
-    await Wallet.connectToApi(KUSAMA_NETWORK);
+    await Wallet.connectToApi(LOCAL_NETWORK);
     app.use('/', routes);
     app.listen(9000, () => {
         console.log('Listening on port 9000...')

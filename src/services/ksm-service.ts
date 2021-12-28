@@ -59,4 +59,73 @@ export const getBalance = async (address: string) => {
         marketInfo,
     };
 }
+// export const calculatePartialFees = async (fromAddress, toAddress, transactionLength) => {
+//     try {
+//       const result = await api.tx.balances.transfer(toAddress, transactionLength).paymentInfo(fromAddress);
+//       const {partialFees} = result;
+//       return partialFees;
+//     } catch (error) {
+//       // eslint-disable-next-line no-console
+//       console.log('Error in calculatePartialFees', error);
+//       return 0;
+//     }
+//   };
+
+// export const getAllFees = async transactionLength => {
+//     const allFees = await api.derive.balances.fees();
+//     const {transactionBaseFee, transferFee,creationFee} = allFees;
+//     const bytesFee = allFees.transactionByteFee * transactionLength
+//     // const transactionBaseFee = new BN(allFees.transactionBaseFee);
+//     // const transferFee = new BN(allFees.transferFee);
+//     // const bytesFee = new BN(allFees.transactionByteFee).mul(new BN(transactionLength));
+//     // const creationFee = new BN(allFees.creationFee);
+//     return {
+//       transactionBaseFee,
+//       transferFee,
+//       bytesFee,
+//       creationFee,
+//     };
+//   };
+//   export const checkCreationFee = async (toAddress, creationFee) => {
+//     try {
+//       const api = getApi();
+//       const { free } = await api.query.balances.account(toAddress);
+//       return free.isZero() ? creationFee : 0;
+//     } catch (err) {
+//       console.log('Error in checkCreationFee', err);
+//       return 0;
+//     }
+//   };
+// export const transferFees = async (fromAddress, toAddress, transactionLength) => {
+//     // get all fees
+//     const {
+//       transactionBaseFee, transferFee, bytesFee, creationFee
+//     } = await getAllFees(
+//       transactionLength,
+//     );
+
+//     // calculate partial fees
+//     const partialFees = await calculatePartialFees(fromAddress, toAddress, transactionLength);
+
+//     // check for creation fees
+//     const newCreationFee = await checkCreationFee(toAddress, creationFee);
+
+//     // total of all fees
+//     const totalFee = transactionBaseFee
+//       .add(transferFee)
+//       .add(bytesFee)
+//       .add(newCreationFee)
+//       .add(partialFees);
+
+//     // return fees object
+//     const fees = {
+//       transactionBaseFee: transactionBaseFee.toString(),
+//       transferFee: transferFee.toString(),
+//       bytesFee: bytesFee.toString(),
+//       creationFee: newCreationFee.toString(),
+//       totalFee: totalFee.toString(),
+//     };
+//     return fees;
+//   };
+
 export const getApi = () => api;
