@@ -23,12 +23,23 @@ class Account {
     public static Post(req: IRequest, res: IResponse): any {
         const { seedWords } = req.body;
         try {
-            const { address, mnemonic } = Wallet.createNewAccount(seedWords);
-            res.status(201).json({ status: true, data: { address, seedWords: mnemonic } })
+            const { account, mnemonic } = Wallet.createAccount(seedWords);
+            res.status(201).json({ status: true, data: { address: account.address, seedWords: mnemonic } })
         }
         catch (err) {
             res.status(400).json({ status: false })
         }
+    }
+    public static async Transfer(req: IRequest, res: IResponse): Promise<any> {
+        const { addrFrom, addrTo, amount } = req.body;
+        // try {
+        //     console.log(addrFrom, addrTo, amount);
+        const { hash, total } = await Wallet.transfer(addrFrom, addrTo, amount);
+        res.status(201).json({ status: true, data: { hash, total } })
+        // }
+        // catch (err) {
+        //     res.status(400).json({ status: false })
+        // }
     }
 }
 

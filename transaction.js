@@ -127,25 +127,25 @@ transferFees = async (fromAddress, toAddress, transactionLength) => {
     // const x = await transfer.paymentInfo(alice);
     // console.log(`transaction will have a weight of ${x.weight / DOT_DECIMAL_PLACES} KSM, with ${x.partialFee.toHuman()} weight fees`);
 
-    // // Send
-    // const unsub = await transfer.signAndSend(alice,
-    //     async ({ events = [], status }) => {
-    //         console.log(`Current status is ${status.type}`);
+    // Send
+    const unsub = await transfer.signAndSend(alice,
+        async ({ events = [], status }) => {
+            console.log(`Current status is ${status.type}`);
 
-    //         if (status.isFinalized) {
-    //             console.log(`Transaction included at blockHash ${status.asFinalized}`);
-    //             // Loop through Vec<EventRecord> to display all events
-    //             events.forEach(({ phase, event: { data, method, section } }) => {
-    //                 console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-    //             });
-    //             // OVERVIEWIREFRESHINTERVAL = 2000
-    //             // interval = setInterval(async () => {
-    //             //     let { data: balanceBob1 } = await api.query.system.account(BOB);
-    //             //     console.log(`${BOB} has ${balanceBob1.free / DOT_DECIMAL_PLACES} KSM ( ${balanceBob1.free} raw )`);
-    //             // }, OVERVIEWIREFRESHINTERVAL);
-    //             // clearInterval(interval);
-    //             unsub();
-    //         }
-    //     }
-    // );
+            if (status.isFinalized) {
+                console.log(`Transaction included at blockHash ${status.asFinalized}`);
+                // Loop through Vec<EventRecord> to display all events
+                events.forEach(({ phase, event: { data, method, section } }) => {
+                    console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+                });
+                // OVERVIEWIREFRESHINTERVAL = 2000
+                // interval = setInterval(async () => {
+                //     let { data: balanceBob1 } = await api.query.system.account(BOB);
+                //     console.log(`${BOB} has ${balanceBob1.free / DOT_DECIMAL_PLACES} KSM ( ${balanceBob1.free} raw )`);
+                // }, OVERVIEWIREFRESHINTERVAL);
+                // clearInterval(interval);
+                unsub();
+            }
+        }
+    );
 })()

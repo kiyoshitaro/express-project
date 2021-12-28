@@ -3,6 +3,7 @@ export const DOT_DECIMAL_PLACES = 1000000000000;
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { INetwork } from '../interfaces/INetwork';
 import { mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
+import { BN } from 'bn.js';
 
 import {
     Keyring
@@ -33,16 +34,16 @@ export const connectToApi = async (network: INetwork) => {
         console.log(`Error in ${name} connection`);
     }
 };
-export const createNewAccount = (seedWords?: string) => {
+export const createAccount = (seedWords?: string) => {
     const mnemonic = seedWords && mnemonicValidate(seedWords)
         ? seedWords
         : mnemonicGenerate();
     try {
         const keyring = new Keyring();
         keyring.setSS58Format(42);
-        const pairAlice = keyring.addFromMnemonic(`${mnemonic}`);
-        const { address } = keyring.getPair(pairAlice.address);
-        return { address, mnemonic };
+        const account = keyring.addFromMnemonic(`${mnemonic}`);
+        // const { address } = keyring.getPair(account.address);
+        return { account, mnemonic };
     } catch (err) {
         throw new Error('Error in create address');
     }
@@ -56,14 +57,56 @@ export const getBalance = async (address: string) => {
     const {
         data: { free: balance },
     } = await api.query.system.account(address);
-    const dotBalance = formatBalance(balance, { forceUnit: 'ksm', withSi: true }, 15);
+    // need to get this fraction directly from the network we are connected with and divide our amount with it.
+    const amount = balance / (10 ** api.registry.chainDecimals);
+    // const amount = formatBalance(balance, { forceUnit: 'ksm', withSi: true }, 15);
     return {
         address,
         balance: balance.toString(),
-        amount: dotBalance.replace(' KSM', ''),
+        amount,
         marketInfo,
     };
 }
+export const transfer = async (addrFrom: string, addrTo: string, amount: string) => {
+    const unit = new BN(10).pow(new BN(api.registry.chainDecimals));
+    const amountFormat = new BN(amount).mul(unit);
+    // const amountFormat = amount * (10 ** api.registry.chainDecimals);
+
+    // const { account: fromAcc } = createAccount(mnemonicFrom);
+    // const { account: toAcc } = createAccount(mnemonicTo);
+    const keyring = new Keyring({ type: 'sr25519' });
+    const fromAcc = keyring.addFromAddress(addrFrom);
+
+    const transfer = api.tx.balances
+        .transfer(addrTo, amountFormat);
+    const { partialFee } = await transfer.paymentInfo(fromAcc);
+    const fees = partialFee.muln(110).divn(100);
+    const total = amountFormat
+        .add(fees)
+        .add(api.consts.balances.existentialDeposit).div(unit);
+    const { amount: fromAvailable } = await getBalance(fromAcc.address);
+    console.log(total.toString(), fromAvailable, "lll", total.lte(new BN(fromAvailable)));
+
+    if (total.lte(new BN(fromAvailable))) {
+        console.log(fromAcc.address, "pppp");
+        const signedTransaction = await transfer.signAndSend(fromAcc,
+            // async ({ events = [], status }) => {
+            //     // if (status?.isFinalized) {
+            //     // console.log(`Transaction included at blockHash ${status.asFinalized}`);
+            //     events.forEach(({ phase, event: { data, method, section } }) => {
+            //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+            //     });
+            //     // }
+            // }
+        )
+        console.log(`Created transfer: ${signedTransaction}`);
+
+        const txnHash = signedTransaction.hash.toHex();
+        return { hash: txnHash, total: total.toString() };
+    }
+    return { hash: 0, total: 0 };
+}
+
 // export const calculatePartialFees = async (fromAddress, toAddress, transactionLength) => {
 //     try {
 //       const result = await api.tx.balances.transfer(toAddress, transactionLength).paymentInfo(fromAddress);

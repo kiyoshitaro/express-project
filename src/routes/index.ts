@@ -67,6 +67,7 @@ router.delete('/api/v1/post/:id', Posts.Delete);
 
 router.get('/api/v1/account/:id', Account.GetOne);
 router.post('/api/v1/account', Account.Post);
+router.post('/api/v1/transfer', Account.Transfer);
 
 router.all('*', NotFound.index);
 
