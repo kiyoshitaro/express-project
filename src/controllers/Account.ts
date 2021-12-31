@@ -31,15 +31,15 @@ class Account {
         }
     }
     public static async Transfer(req: IRequest, res: IResponse): Promise<any> {
-        const { addrFrom, addrTo, amount } = req.body;
-        // try {
-        //     console.log(addrFrom, addrTo, amount);
-        const { hash, total } = await Wallet.transfer(addrFrom, addrTo, amount);
-        res.status(201).json({ status: true, data: { hash, total } })
-        // }
-        // catch (err) {
-        //     res.status(400).json({ status: false })
-        // }
+        let { addrFrom, addrTo, amount } = req.body;
+        try {
+            amount = Number(amount);
+            const { status, hash, total } = await Wallet.transfer(addrFrom, addrTo, amount);
+            res.status(201).json({ status, data: { hash, total } })
+        }
+        catch (err) {
+            res.status(400).json({ status: false })
+        }
     }
 }
 

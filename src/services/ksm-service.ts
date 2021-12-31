@@ -12,9 +12,61 @@ import {
     formatBalance,
 } from '@polkadot/util';
 import { getUSDValue } from './market-service';
-// var { encodeAddress } = require('@polkadot/util-crypto');
-// const { Keyring } = require('@polkadot/keyring');
-// const { stringToU8a, u8aToHex } = require('@polkadot/util');
+import { EventRecord, ExtrinsicStatus } from '@polkadot/types/interfaces';
+import type { Signer, SignerResult } from '@polkadot/api/types';
+import type { KeyringPair } from '@polkadot/keyring/types';
+import type { Registry, SignerPayloadJSON } from '@polkadot/types/types';
+
+// import { lockAccount } from '../util';
+
+import type { SignerPayloadRaw } from '@polkadot/types/types';
+import * as readline from 'readline';
+import { assert, isHex } from '@polkadot/util';
+import { blake2AsHex } from '@polkadot/util-crypto';
+// import type { SignerOptions } from '@polkadot/api/submittable/types';
+
+let id = 0;
+export class RawSigner implements Signer {
+    public async signRaw({ data }: SignerPayloadRaw): Promise<SignerResult> {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        return new Promise((resolve): void => {
+            const hashed = (data.length > (256 + 1) * 2)
+                ? blake2AsHex(data)
+                : data;
+
+            rl.question(`Payload: ${hashed}\nSignature> `, (_signature) => {
+                const signature = _signature.trim();
+
+                assert(isHex(signature), 'Supplied signature is not hex');
+
+                resolve({ id: 1, signature });
+                rl.close();
+            });
+        });
+    }
+}
+export default class AccountSigner implements Signer {
+    readonly #keyringPair: KeyringPair;
+    readonly #registry: Registry;
+
+    constructor(registry: Registry, keyringPair: KeyringPair) {
+        this.#keyringPair = keyringPair;
+        this.#registry = registry;
+    }
+
+    public async signPayload(payload: SignerPayloadJSON): Promise<SignerResult> {
+        return new Promise((resolve): void => {
+            const signed = this.#registry.createType('ExtrinsicPayload', payload, { version: payload.version }).sign(this.#keyringPair);
+
+            // lockAccount(this.#keyringPair);
+            resolve({ id: ++id, ...signed });
+        });
+    }
+}
 
 let api: any = null;
 export const connectToApi = async (network: INetwork) => {
@@ -48,9 +100,6 @@ export const createAccount = (seedWords?: string) => {
         throw new Error('Error in create address');
     }
 }
-// public static async createAccountWithSeed() {
-
-// }
 export const getBalance = async (address: string) => {
     formatBalance.setDefaults({ unit: 'KSM' });
     const marketInfo = await getUSDValue('kusama');
@@ -67,44 +116,53 @@ export const getBalance = async (address: string) => {
         marketInfo,
     };
 }
-export const transfer = async (addrFrom: string, addrTo: string, amount: string) => {
+export const transfer = async (mnemonicFrom: string, addrTo: string, amount: number) => {
     const unit = new BN(10).pow(new BN(api.registry.chainDecimals));
-    const amountFormat = new BN(amount).mul(unit);
     // const amountFormat = amount * (10 ** api.registry.chainDecimals);
 
     // const { account: fromAcc } = createAccount(mnemonicFrom);
     // const { account: toAcc } = createAccount(mnemonicTo);
     const keyring = new Keyring({ type: 'sr25519' });
-    const fromAcc = keyring.addFromAddress(addrFrom);
+    let fromAcc;
+    try {
+        fromAcc = keyring.addFromMnemonic(mnemonicFrom);
+    }
+    catch (err) {
+        return { status: false, hash: 0, total: 0, description: "Wrong sender" };
+    }
 
+    const amountFormat = new BN(amount).mul(unit);
     const transfer = api.tx.balances
         .transfer(addrTo, amountFormat);
     const { partialFee } = await transfer.paymentInfo(fromAcc);
     const fees = partialFee.muln(110).divn(100);
-    const total = amountFormat
+    let total = amountFormat
         .add(fees)
-        .add(api.consts.balances.existentialDeposit).div(unit);
+        .add(api.consts.balances.existentialDeposit);
     const { amount: fromAvailable } = await getBalance(fromAcc.address);
-    console.log(total.toString(), fromAvailable, "lll", total.lte(new BN(fromAvailable)));
-
-    if (total.lte(new BN(fromAvailable))) {
-        console.log(fromAcc.address, "pppp");
+    // console.log(total.div(unit).toNumber().toFixed(10), fees.toNumber(), "lll", api.consts.balances.existentialDeposit.toNumber());
+    if (total.div(unit).lte(new BN(fromAvailable))) {
         const signedTransaction = await transfer.signAndSend(fromAcc,
-            // async ({ events = [], status }) => {
-            //     // if (status?.isFinalized) {
-            //     // console.log(`Transaction included at blockHash ${status.asFinalized}`);
-            //     events.forEach(({ phase, event: { data, method, section } }) => {
-            //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-            //     });
-            //     // }
-            // }
+            async ({ events = [], status }: { events?: EventRecord[], status: ExtrinsicStatus; }) => {
+                if (status.isFinalized) {
+                    console.log(`Transaction included at blockHash ${status.asFinalized}`);
+                    events.forEach(({ phase, event: { data, method, section } }) => {
+                        console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+                    });
+                }
+            }
         )
-        console.log(`Created transfer: ${signedTransaction}`);
+        console.log(`Created transfer: ${transfer.hash.toHex()}`);
+        return { status: true, hash: transfer.hash.toHex(), total: total.toNumber() / unit.toNumber() };
 
-        const txnHash = signedTransaction.hash.toHex();
-        return { hash: txnHash, total: total.toString() };
+        // const options: Partial<SignerOptions> = { signer: new Signer() };
+        // options.nonce = (await api.derive.balances.account(fromAcc)).accountNonce;
+        // options.blockHash = api.genesisHash;
+        // options.era = 0;
+        // await transfer.signAsync(fromAcc, options);
+        // console.log('\nSigned transaction:\n' + transfer.toJSON());
     }
-    return { hash: 0, total: 0 };
+    return { status: false, hash: 0, total: 0 };
 }
 
 // export const calculatePartialFees = async (fromAddress, toAddress, transactionLength) => {

@@ -76,27 +76,26 @@ transferFees = async (fromAddress, toAddress, transactionLength) => {
 };
 (async () => {
 
-    const provider = new WsProvider('wss://kusama-rpc.polkadot.io/')
+    const provider = new WsProvider('ws://127.0.0.1:9944')
     const api = await ApiPromise.create({ provider })
-    const BOB = '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty';
+    const BOB = '5GNJqTPyNqANBkUVMN1LPPrxXnFouWXoe2wNSmmEoLctxiZY';
 
     // Constuct the keyring after the API (crypto has an async init)
     const keyring = new Keyring({ type: 'sr25519' });
 
     // Add Alice to our keyring with a hard-deived path (empty phrase, so uses dev)
-    const alice = keyring.addFromUri('//Alice');
+    const alice = keyring.addFromMnemonic('human host pottery potato fiscal pipe dutch cement spread science program language');
+    const alice = keyring.addFromPair('5DHqMSYRmDyLKEma6VhK2ijbTt8ybwT4HpEemiMfQVzkoN1Y');
     // console.log(alice);
     // console.log(`Sending from address ${alice.address} with publicKey [${alice.publicKey}]`);
 
     // const balance = await api.query.balances.account("15SbxvcrYSQzjpWk6SpiHUyRKEZMCFVzgA7QKspvFqU5jy82");
     const { data: balance } = await api.query.system.account(alice.address);
+    console.log(alice.addressRaw);
     console.log(`${alice.address} has ${balance.free / DOT_DECIMAL_PLACES} KSM ( ${balance.free} raw )`);
 
     let { data: balanceBob } = await api.query.system.account(BOB);
     console.log(`${BOB} has ${balanceBob.free / DOT_DECIMAL_PLACES} KSM ( ${balanceBob.free} raw )`);
-
-    const unsub = await api.consts.balances.existentialDeposit;
-    console.log(unsub.toString(),"ssss");
 
     // // Read in argument for the address
     // // Sign and send a transfer from Alice to Bob
@@ -123,29 +122,29 @@ transferFees = async (fromAddress, toAddress, transactionLength) => {
 
 
     // // // Payment information
-    // const transfer = api.tx.balances.transfer(BOB, 1000000);
+    // const transfer = api.tx.balances.transfer(BOB, 1000);
     // const x = await transfer.paymentInfo(alice);
     // console.log(`transaction will have a weight of ${x.weight / DOT_DECIMAL_PLACES} KSM, with ${x.partialFee.toHuman()} weight fees`);
 
-    // Send
-    const unsub = await transfer.signAndSend(alice,
-        async ({ events = [], status }) => {
-            console.log(`Current status is ${status.type}`);
+    // // Send
+    // const unsub = await transfer.signAndSend(alice,
+    //     async ({ events = [], status }) => {
+    //         console.log(`Current status is ${status.type}`);
 
-            if (status.isFinalized) {
-                console.log(`Transaction included at blockHash ${status.asFinalized}`);
-                // Loop through Vec<EventRecord> to display all events
-                events.forEach(({ phase, event: { data, method, section } }) => {
-                    console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-                });
-                // OVERVIEWIREFRESHINTERVAL = 2000
-                // interval = setInterval(async () => {
-                //     let { data: balanceBob1 } = await api.query.system.account(BOB);
-                //     console.log(`${BOB} has ${balanceBob1.free / DOT_DECIMAL_PLACES} KSM ( ${balanceBob1.free} raw )`);
-                // }, OVERVIEWIREFRESHINTERVAL);
-                // clearInterval(interval);
-                unsub();
-            }
-        }
-    );
+    //         if (status.isFinalized) {
+    //             console.log(`Transaction included at blockHash ${status.asFinalized}`);
+    //             // Loop through Vec<EventRecord> to display all events
+    //             events.forEach(({ phase, event: { data, method, section } }) => {
+    //                 console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+    //             });
+    //             // OVERVIEWIREFRESHINTERVAL = 2000
+    //             // interval = setInterval(async () => {
+    //             //     let { data: balanceBob1 } = await api.query.system.account(BOB);
+    //             //     console.log(`${BOB} has ${balanceBob1.free / DOT_DECIMAL_PLACES} KSM ( ${balanceBob1.free} raw )`);
+    //             // }, OVERVIEWIREFRESHINTERVAL);
+    //             // clearInterval(interval);
+    //             unsub();
+    //         }
+    //     }
+    // );
 })()
