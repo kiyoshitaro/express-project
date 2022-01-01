@@ -1,6 +1,7 @@
 import { INetwork } from "../interfaces/INetwork";
 export const KUSAMA_NETWORK: INetwork = {
     name: 'Kusama',
+    currency: 'kusama',
     networkURL: 'wss://kusama-rpc.polkadot.io/',
     networkPort: '',
     networkFullUrl: 'wss://kusama-rpc.polkadot.io/',
@@ -9,6 +10,7 @@ export const KUSAMA_NETWORK: INetwork = {
 };
 export const WESTEND_NETWORK: INetwork = {
     name: 'Westend',
+    currency: 'kusama',
     networkURL: 'wss://westend-rpc.polkadot.io',
     networkPort: '',
     networkFullUrl: 'wss://westend-rpc.polkadot.io',
@@ -17,6 +19,7 @@ export const WESTEND_NETWORK: INetwork = {
 };
 export const LOCAL_NETWORK: INetwork = {
     name: 'Local',
+    currency: 'kusama',
     networkURL: 'ws://127.0.0.1:9944',
     networkPort: '',
     networkFullUrl: 'ws://127.0.0.1:9944',

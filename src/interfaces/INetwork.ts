@@ -5,4 +5,5 @@ export interface INetwork {
     networkFullUrl: string,
     transactionUrl?: string,
     unit?: string,
+    currency?: string;
 }

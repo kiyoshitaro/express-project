@@ -1,76 +1,67 @@
-export const DOT_DECIMAL_PLACES = 1000000000000;
-
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { INetwork } from '../interfaces/INetwork';
 import { mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
 import { BN } from 'bn.js';
-
+// import type { Registry, } from '@polkadot/types/types';
 import {
     Keyring
 } from '@polkadot/keyring';
-import {
-    formatBalance,
-} from '@polkadot/util';
+// import { formatBalance } from '@polkadot/util';
 import { getUSDValue } from './market-service';
 import { EventRecord, ExtrinsicStatus } from '@polkadot/types/interfaces';
-import type { Signer, SignerResult } from '@polkadot/api/types';
-import type { KeyringPair } from '@polkadot/keyring/types';
-import type { Registry, SignerPayloadJSON } from '@polkadot/types/types';
 
-// import { lockAccount } from '../util';
-
-import type { SignerPayloadRaw } from '@polkadot/types/types';
-import * as readline from 'readline';
-import { assert, isHex } from '@polkadot/util';
-import { blake2AsHex } from '@polkadot/util-crypto';
+// import type { Signer, SignerResult } from '@polkadot/api/types';
+// import type { KeyringPair } from '@polkadot/keyring/types';
+// import type { Registry, SignerPayloadJSON } from '@polkadot/types/types';
+// import type { SignerPayloadRaw } from '@polkadot/types/types';
+// import * as readline from 'readline';
+// import { assert, isHex } from '@polkadot/util';
+// import { blake2AsHex } from '@polkadot/util-crypto';
 // import type { SignerOptions } from '@polkadot/api/submittable/types';
 
-let id = 0;
-export class RawSigner implements Signer {
-    public async signRaw({ data }: SignerPayloadRaw): Promise<SignerResult> {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
+// let id = 0;
+// export class RawSigner implements Signer {
+//     public async signRaw({ data }: SignerPayloadRaw): Promise<SignerResult> {
+//         const rl = readline.createInterface({
+//             input: process.stdin,
+//             output: process.stdout
+//         });
 
-        return new Promise((resolve): void => {
-            const hashed = (data.length > (256 + 1) * 2)
-                ? blake2AsHex(data)
-                : data;
+//         return new Promise((resolve): void => {
+//             const hashed = (data.length > (256 + 1) * 2)
+//                 ? blake2AsHex(data)
+//                 : data;
+//             rl.question(`Payload: ${hashed}\nSignature> `, (_signature) => {
+//                 const signature = _signature.trim();
+//                 assert(isHex(signature), 'Supplied signature is not hex');
+//                 resolve({ id: 1, signature });
+//                 rl.close();
+//             });
+//         });
+//     }
+// }
+// export default class AccountSigner implements Signer {
+//     readonly #keyringPair: KeyringPair;
+//     readonly #registry: Registry;
 
-            rl.question(`Payload: ${hashed}\nSignature> `, (_signature) => {
-                const signature = _signature.trim();
+//     constructor(registry: Registry, keyringPair: KeyringPair) {
+//         this.#keyringPair = keyringPair;
+//         this.#registry = registry;
+//     }
 
-                assert(isHex(signature), 'Supplied signature is not hex');
-
-                resolve({ id: 1, signature });
-                rl.close();
-            });
-        });
-    }
-}
-export default class AccountSigner implements Signer {
-    readonly #keyringPair: KeyringPair;
-    readonly #registry: Registry;
-
-    constructor(registry: Registry, keyringPair: KeyringPair) {
-        this.#keyringPair = keyringPair;
-        this.#registry = registry;
-    }
-
-    public async signPayload(payload: SignerPayloadJSON): Promise<SignerResult> {
-        return new Promise((resolve): void => {
-            const signed = this.#registry.createType('ExtrinsicPayload', payload, { version: payload.version }).sign(this.#keyringPair);
-
-            // lockAccount(this.#keyringPair);
-            resolve({ id: ++id, ...signed });
-        });
-    }
-}
+//     public async signPayload(payload: SignerPayloadJSON): Promise<SignerResult> {
+//         return new Promise((resolve): void => {
+//             const signed = this.#registry.createType('ExtrinsicPayload', payload, { version: payload.version }).sign(this.#keyringPair);
+//             resolve({ id: ++id, ...signed });
+//         });
+//     }
+// }
 
 let api: any = null;
+let currency: string | any = "";
 export const connectToApi = async (network: INetwork) => {
     let { networkFullUrl, name } = network;
+    currency = network.currency;
     try {
         const provider = new WsProvider(networkFullUrl);
         api = await ApiPromise.create({ provider });
@@ -94,15 +85,14 @@ export const createAccount = (seedWords?: string) => {
         const keyring = new Keyring();
         keyring.setSS58Format(42);
         const account = keyring.addFromMnemonic(`${mnemonic}`);
-        // const { address } = keyring.getPair(account.address);
         return { account, mnemonic };
     } catch (err) {
         throw new Error('Error in create address');
     }
 }
 export const getBalance = async (address: string) => {
-    formatBalance.setDefaults({ unit: 'KSM' });
-    const marketInfo = await getUSDValue('kusama');
+    // formatBalance.setDefaults({ unit: 'KSM' });
+    const marketInfo = await getUSDValue(currency);
     const {
         data: { free: balance },
     } = await api.query.system.account(address);
@@ -111,8 +101,9 @@ export const getBalance = async (address: string) => {
     // const amount = formatBalance(balance, { forceUnit: 'ksm', withSi: true }, 15);
     return {
         address,
-        balance: balance.toString(),
+        balance,
         amount,
+        currency,
         marketInfo,
     };
 }
@@ -132,6 +123,7 @@ export const transfer = async (mnemonicFrom: string, addrTo: string, amount: num
     }
 
     const amountFormat = new BN(amount).mul(unit);
+    console.log(amountFormat, amount);
     const transfer = api.tx.balances
         .transfer(addrTo, amountFormat);
     const { partialFee } = await transfer.paymentInfo(fromAcc);
