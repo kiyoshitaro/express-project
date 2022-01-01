@@ -31,12 +31,10 @@ class Account {
         }
     }
     public static async Transfer(req: IRequest, res: IResponse): Promise<any> {
-        let { addrFrom, addrTo, amount } = req.body;
+        let { mnemonicFrom, addrTo, amount } = req.body;
         try {
-            console.log(amount, "iiii");
             amount = Number(amount);
-            console.log(amount, "oooo");
-            const { status, hash, total } = await Wallet.transfer(addrFrom, addrTo, amount);
+            const { status, hash, total } = await Wallet.transfer(mnemonicFrom, addrTo, amount);
             res.status(201).json({ status, data: { hash, total } })
         }
         catch (err) {
