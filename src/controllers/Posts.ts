@@ -1,5 +1,6 @@
 import { IRequest, IResponse, INext } from '../interfaces';
 import posts from '../data';
+import logger from "../logger";
 
 class Posts {
     public static GetAll(req: IRequest, res: IResponse): any {
@@ -12,7 +13,7 @@ class Posts {
             res.status(200).json({ status: true, data: _post });
         }
         else {
-            // logger.error('Not exist ' + post.id);
+            logger.error('Not exist ' + req.params.id);
             res.status(404).json({ status: false, data: [] });
         }
     }
@@ -22,7 +23,7 @@ class Posts {
             res.status(201).json({ status: true, data: [...posts, { content, img }] })
         }
         else {
-            // logger.error('img field is empty');
+            logger.error('img field is empty');
             res.status(400).json({ status: false })
         }
     }
@@ -41,7 +42,7 @@ class Posts {
             res.status(200).json({ status: true, data: newPosts })
         }
         else {
-            // logger.error('Not exist ' + post.id);
+            logger.error('Not exist ' + id);
             res.status(404).json({ status: false })
         }
     }
@@ -55,7 +56,7 @@ class Posts {
             res.status(200).json({ status: true, data: _newPosts })
         }
         else {
-            // logger.error('Not exist ' + post.id);
+            logger.error('Not exist ' + req.params.id);
             res.status(404).json({ success: false })
         }
     }

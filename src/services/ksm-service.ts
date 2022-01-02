@@ -9,6 +9,7 @@ import {
 // import { formatBalance } from '@polkadot/util';
 import { getUSDValue } from './market-service';
 import { EventRecord, ExtrinsicStatus } from '@polkadot/types/interfaces';
+import logger from "../logger";
 
 // import type { Signer, SignerResult } from '@polkadot/api/types';
 // import type { KeyringPair } from '@polkadot/keyring/types';
@@ -18,7 +19,6 @@ import { EventRecord, ExtrinsicStatus } from '@polkadot/types/interfaces';
 // import { assert, isHex } from '@polkadot/util';
 // import { blake2AsHex } from '@polkadot/util-crypto';
 // import type { SignerOptions } from '@polkadot/api/submittable/types';
-
 // let id = 0;
 // export class RawSigner implements Signer {
 //     public async signRaw({ data }: SignerPayloadRaw): Promise<SignerResult> {
@@ -66,15 +66,11 @@ export const connectToApi = async (network: INetwork) => {
         const provider = new WsProvider(networkFullUrl);
         api = await ApiPromise.create({ provider });
         if (api.isConnected) {
-            console.log(`Connected to ${name} network`);
+            logger.info(`Connected to ${name} network`);
         }
-        // api.on('disconnected', () => {
-        //     disconnect();
-        // });
-        // await setChain(api);
         return api;
     } catch (err) {
-        console.log(`Error in ${name} connection`);
+        logger.error(`Error in ${name} connection`);
     }
 };
 export const createAccount = (seedWords?: string) => {
@@ -87,6 +83,7 @@ export const createAccount = (seedWords?: string) => {
         const account = keyring.addFromMnemonic(`${mnemonic}`);
         return { account, mnemonic };
     } catch (err) {
+        // logger.error('Error in create address');
         throw new Error('Error in create address');
     }
 }
@@ -119,11 +116,11 @@ export const transfer = async (mnemonicFrom: string, addrTo: string, amount: num
         fromAcc = keyring.addFromMnemonic(mnemonicFrom);
     }
     catch (err) {
-        return { status: false, hash: 0, total: 0, description: "Wrong sender" };
+        logger.error("Wrong sender");
+        return { status: false, hash: 0, total: 0 };
     }
 
     const amountFormat = new BN(amount).mul(unit);
-    console.log(amountFormat, amount);
     const transfer = api.tx.balances
         .transfer(addrTo, amountFormat);
     const { partialFee } = await transfer.paymentInfo(fromAcc);
@@ -137,14 +134,14 @@ export const transfer = async (mnemonicFrom: string, addrTo: string, amount: num
         const signedTransaction = await transfer.signAndSend(fromAcc,
             async ({ events = [], status }: { events?: EventRecord[], status: ExtrinsicStatus; }) => {
                 if (status.isFinalized) {
-                    console.log(`Transaction included at blockHash ${status.asFinalized}`);
+                    logger.info(`Transaction included at blockHash ${status.asFinalized}`);
                     events.forEach(({ phase, event: { data, method, section } }) => {
-                        console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+                        logger.info(`\t' ${phase}: ${section}.${method}:: ${data}`);
                     });
                 }
             }
         )
-        console.log(`Created transfer: ${transfer.hash.toHex()}`);
+        logger.info(`Created transfer: ${transfer.hash.toHex()}`);
         return { status: true, hash: transfer.hash.toHex(), total: total.toNumber() / unit.toNumber() };
 
         // const options: Partial<SignerOptions> = { signer: new Signer() };

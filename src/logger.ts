@@ -1,5 +1,5 @@
-const winston = require('winston')
-
+// const winston = require('winston')
+import * as winston from "winston";
 const options = {
     file: {
         level: 'info',
@@ -27,4 +27,4 @@ const logger = winston.createLogger({
     exitOnError: false
 })
 
-module.exports = logger
+export default logger;

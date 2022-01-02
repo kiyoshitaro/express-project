@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { MARKET_API } from '../constants/network';
+import logger from "../logger";
 
 export const getUSDValue = async (tokenId: string) => {
     try {
@@ -13,6 +14,7 @@ export const getUSDValue = async (tokenId: string) => {
             error: false,
         };
     } catch (err) {
+        logger.error("Error when getting market price");
         return {
             currentUSDPrice: 0,
             error: true,

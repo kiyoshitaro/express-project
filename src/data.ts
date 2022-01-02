@@ -4,5 +4,4 @@ const data = [
     { id: 3, img: "", content: "Thing", },
     { id: 4, img: "", content: "Azure", tags: ["azureVM", "azureAD"], },
 ]
-// module.exports = data ;
 export default data;
