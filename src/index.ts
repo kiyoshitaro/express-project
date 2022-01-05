@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 (async () => {
-    await Wallet.connectToApi(LOCAL_NETWORK);
+    await Wallet.connectToApi(WESTEND_NETWORK);
     app.use('/', routes);
     app.listen(9000, () => {
         console.log('Listening on port 9000...')
