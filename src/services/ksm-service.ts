@@ -107,13 +107,12 @@ export const getBalance = async (address: string) => {
 export const transfer = async (mnemonicFrom: string, addrTo: string, amount: number) => {
     // const unit = new BN(10).pow(new BN(api.registry.chainDecimals));
     const unit = Math.pow(10, api.registry.chainDecimals);
-    console.log(unit.toString(), "ppppp");
+    // console.log(unit.toString(), "ppppp");
 
     // const { account: fromAcc } = createAccount(mnemonicFrom);
     // const { account: toAcc } = createAccount(mnemonicTo);
     const keyring = new Keyring({ type: 'sr25519' });
     let fromAcc;
-    let toAcc;
     try {
         fromAcc = keyring.addFromMnemonic(mnemonicFrom);
     }
@@ -121,36 +120,30 @@ export const transfer = async (mnemonicFrom: string, addrTo: string, amount: num
         logger.error("Wrong sender");
         return { status: false, hash: 0, total: 0 };
     }
-    try {
-        toAcc = keyring.addFromAddress(addrTo);
-    }
-    catch (err) {
-        logger.error("Wrong receiver");
-        return { status: false, hash: 0, total: 0 };
-    }
-    // const amountFormat = new BN(amount).mul(unit);
-    const amountFormat = amount * (10 ** api.registry.chainDecimals);
-    const transfer = api.tx.balances
-        .transfer(addrTo, amountFormat);
-    const { partialFee } = await transfer.paymentInfo(fromAcc);
-    const fees = partialFee.muln(110).divn(100);
-    const existDep = await api.consts.balances.existentialDeposit();
-    console.log(amountFormat, fees, "ooooo", existDep.toNumber());
-
     const { amount: toAvailable } = await getBalance(addrTo);
-    let total;
+    const existDep = await api.consts.balances.existentialDeposit;
+
+    // const amountFormat = new BN(amount).mul(unit);
+    let amountFormat = amount * (10 ** api.registry.chainDecimals);
+    let transfer;
+    if (amountFormat + toAvailable * (10 ** api.registry.chainDecimals) <= existDep.toNumber()) {
+        amountFormat += existDep.toNumber();
+        transfer = api.tx.balances
+            .transfer(addrTo, amountFormat);
+    }
+    else {
+        transfer = api.tx.balances
+            .transfer(addrTo, amountFormat);
+    }
+    const { partialFee } = await transfer.paymentInfo(fromAcc);
+    // const fees = partialFee.muln(110).divn(100);
+    const fees = partialFee;
+    let total = amountFormat
+        + fees.toNumber();
     // let total = amountFormat
     //     .add(fees)
     //     .add(api.consts.balances.existentialDeposit);
-    if (toAvailable === 0) {
-        total = amountFormat
-            + fees.toNumber()
-            + existDep.toNumber();
-    }
-    else {
-        total = amountFormat
-            + fees.toNumber()
-    }
+
     const { amount: fromAvailable } = await getBalance(fromAcc.address);
     // console.log(fromAvailable, "mmmmm", total, unit, total / unit);
 
